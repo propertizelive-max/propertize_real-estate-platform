@@ -1,0 +1,21 @@
+import { MetadataRoute } from 'next'
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/login', '/admin/login'],
+      },
+      {
+        userAgent: 'Googlebot',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/login', '/admin/login'],
+      },
+    ],
+    sitemap: `${BASE_URL}/sitemap.xml`,
+  }
+}
