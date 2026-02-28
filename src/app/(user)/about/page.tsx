@@ -52,7 +52,9 @@ export default function AboutPage() {
     setHeroVisible(true)
   }, [])
 
-  const activeServices = services.filter((s) => (s.status ?? 'active').toLowerCase() === 'active')
+  const activeServices = services.filter((s) => s.is_active)
+  const activeTeam = team.filter((t) => t.is_active)
+  const activeTestimonials = testimonials.filter((t) => t.is_active)
   const byKey = Object.fromEntries(sections.map((s) => [s.section_key, s]))
   const orderedSections = SECTION_KEYS.map((k) => byKey[k]).filter(Boolean)
 
@@ -75,10 +77,10 @@ export default function AboutPage() {
   const hasContent =
     orderedSections.length > 0 ||
     activeServices.length > 0 ||
-    team.length > 0 ||
+    activeTeam.length > 0 ||
     stats.length > 0 ||
     faqs.length > 0 ||
-    testimonials.length > 0
+    activeTestimonials.length > 0
 
   if (!hasContent) {
     return (
@@ -91,7 +93,7 @@ export default function AboutPage() {
     )
   }
 
-  const testimonialContent = (t: Testimonial) => t.content ?? t.review ?? ''
+  const testimonialContent = (t: Testimonial) => t.review ?? ''
 
   return (
     <div className="luxe-landing min-h-screen bg-[#faf9f7] dark:bg-background-dark text-primary font-display antialiased">
@@ -240,14 +242,14 @@ export default function AboutPage() {
         )}
 
         {/* Team - profile cards */}
-        {team.length > 0 && (
+        {activeTeam.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold text-primary mb-8 flex items-center gap-3">
               <span className="w-1 h-6 bg-accent-gold rounded-full" />
               Our Team
             </h2>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {team.map((t) => (
+              {activeTeam.map((t) => (
                 <div
                   key={t.id}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-shadow"
@@ -270,8 +272,8 @@ export default function AboutPage() {
                   <div className="p-6">
                     <h3 className="font-bold text-gray-900 text-lg">{t.name ?? '-'}</h3>
                     <p className="text-accent-gold font-medium text-sm mt-0.5">{t.role ?? '-'}</p>
-                    {t.experience && (
-                      <p className="text-xs text-gray-500 mt-2">{t.experience}</p>
+                    {t.experience_years != null && (
+                      <p className="text-xs text-gray-500 mt-2">{t.experience_years} years</p>
                     )}
                     {t.bio && (
                       <p className="text-sm text-gray-700 mt-3 leading-relaxed line-clamp-3">{t.bio}</p>
@@ -284,14 +286,14 @@ export default function AboutPage() {
         )}
 
         {/* Testimonials - quote style */}
-        {testimonials.length > 0 && (
+        {activeTestimonials.length > 0 && (
           <section className="bg-white rounded-2xl border border-gray-100 p-8 md:p-12 shadow-sm">
             <h2 className="text-2xl font-bold text-primary mb-8 flex items-center gap-3">
               <span className="w-1 h-6 bg-accent-gold rounded-full" />
               Testimonials
             </h2>
             <div className="space-y-10">
-              {testimonials.map((t) => (
+              {activeTestimonials.map((t) => (
                 <blockquote key={t.id} className="relative pl-8 border-l-2 border-accent-gold/40">
                   <span className="material-symbols-outlined absolute -left-1 -top-1 text-accent-gold/60 text-2xl">
                     format_quote
@@ -300,18 +302,15 @@ export default function AboutPage() {
                     &ldquo;{testimonialContent(t)}&rdquo;
                   </p>
                   <footer className="mt-4 flex items-center gap-4">
-                    {t.image_url && (
+                    {t.client_image && (
                       <img
-                        src={t.image_url}
+                        src={t.client_image}
                         alt={t.client_name ?? ''}
                         className="w-12 h-12 rounded-full object-cover border-2 border-accent-gold/30"
                       />
                     )}
                     <div>
                       <cite className="font-semibold text-gray-900 not-italic">{t.client_name ?? '-'}</cite>
-                      {t.client_role && (
-                        <p className="text-sm text-gray-600">{t.client_role}</p>
-                      )}
                       {t.rating != null && t.rating > 0 && (
                         <p className="text-accent-gold text-sm mt-0.5">
                           {'★'.repeat(Math.round(t.rating))}

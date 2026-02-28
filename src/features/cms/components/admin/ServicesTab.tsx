@@ -43,14 +43,14 @@ export function ServicesTab() {
   }
   function openEdit(s: Service) {
     setEditing(s)
-    setForm({ title: s.title ?? '', description: s.description ?? '', icon: s.icon ?? '', status: (s.status ?? 'active').toLowerCase() })
+    setForm({ title: s.title ?? '', description: s.description ?? '', icon: s.icon ?? '', status: s.is_active ? 'active' : 'inactive' })
     setModalOpen(true)
   }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const payload = { title: form.title.trim(), description: form.description.trim(), icon: form.icon.trim() || null, status: form.status }
+      const payload = { title: form.title.trim(), description: form.description.trim(), icon: form.icon.trim() || null, is_active: form.status === 'active' }
       if (editing) {
         await updateService(editing.id, payload)
         showToast('Updated.', true)
@@ -106,7 +106,7 @@ export function ServicesTab() {
                     <td className="px-6 py-4 font-medium">{s.title ?? '-'}</td>
                     <td className="max-w-xs px-6 py-4 text-sm truncate">{s.description ?? '-'}</td>
                     <td className="px-6 py-4 text-sm">{s.icon ?? '-'}</td>
-                    <td className="px-6 py-4"><span className={`rounded px-2 py-0.5 text-xs ${(s.status ?? 'active') === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>{s.status ?? 'active'}</span></td>
+                    <td className="px-6 py-4"><span className={`rounded px-2 py-0.5 text-xs ${s.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>{s.is_active ? 'active' : 'inactive'}</span></td>
                     <td className="px-6 py-4">
                       <button type="button" onClick={() => openEdit(s)} className="text-primary hover:underline text-sm mr-2">Edit</button>
                       <button type="button" onClick={() => handleDelete(s)} className="text-red-600 hover:underline text-sm">Delete</button>

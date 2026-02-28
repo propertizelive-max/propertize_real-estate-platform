@@ -10,7 +10,7 @@ const navItems = [
   { path: '/admin/properties', label: 'Properties', icon: HouseIcon },
   { path: '/admin/property-videos', label: 'Property Videos', icon: VideoIcon },
   { path: '/admin/scheduled-tours', label: 'Scheduled Tours', icon: CalendarIcon },
-  { path: '/admin/compressions', label: 'Compressions', icon: CompareIcon },
+  { path: '/admin/compressions', label: 'Comparisons', icon: CompareIcon },
   { path: '/admin/amenities', label: 'Amenities', icon: TagIcon },
   { path: '/admin/property-types', label: 'Property Types', icon: TypeIcon },
   { path: '/admin/settings', label: 'Settings', icon: SettingsIcon },

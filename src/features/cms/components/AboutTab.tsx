@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { fetchSiteSections, upsertSiteSection } from '../services/cmsApi'
 import type { SiteSection } from '../types'
-import EmptyState from './EmptyState'
-import LoadingSkeleton from './LoadingSkeleton'
+// import EmptyState from './EmptyState'
+import { EmptyState } from './EmptyState'
+// import LoadingSkeleton from './LoadingSkeleton'
+import { LoadingSkeleton } from './LoadingSkeleton'
 import Toast from './Toast'
 
 const SECTION_KEYS = [
@@ -33,10 +35,15 @@ export default function AboutTab() {
   async function load() {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await fetchSiteSections()
-    setSections(data ?? [])
-    setError(err?.message ?? null)
-    setLoading(false)
+  
+    try {
+      const data = await fetchSiteSections()
+      setSections(data ?? [])
+    } catch (err: any) {
+      setError(err?.message ?? 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -60,19 +67,30 @@ export default function AboutTab() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!modalOpen) return
+  
     setSaving(true)
-    const { data, error: err } = await upsertSiteSection({
-      section_key: modalOpen,
-      ...form,
-    })
-    setSaving(false)
-    if (err) {
-      setToast({ message: err.message, type: 'error' })
-      return
+  
+    try {
+      await upsertSiteSection({
+        section_key: modalOpen,
+        ...form,
+      })
+  
+      setToast({
+        message: 'Section saved successfully.',
+        type: 'success',
+      })
+  
+      setModalOpen(null)
+      load()
+    } catch (err: any) {
+      setToast({
+        message: err?.message ?? 'Failed to save section.',
+        type: 'error',
+      })
+    } finally {
+      setSaving(false)
     }
-    setToast({ message: 'Section saved successfully.', type: 'success' })
-    setModalOpen(null)
-    load()
   }
 
   if (loading) return <LoadingSkeleton />

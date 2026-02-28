@@ -79,7 +79,7 @@ export function LegalPagesTab() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
         {LEGAL_SLUGS.map((slug) => {
-          const page = items.find((p) => (p.slug ?? p.page_key) === slug)
+          const page = items.find((p) => p.page_key === slug)
           return (
             <button key={slug} type="button" onClick={() => (page ? openEdit(page) : handleCreate(slug))} className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-50">
               {page ? `Edit ${page.title ?? slug}` : `Create ${slug.replace(/-/g, ' ')}`}
@@ -90,7 +90,7 @@ export function LegalPagesTab() {
 
       {editing && (
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-bold">Edit: {editing.title ?? editing.slug ?? editing.page_key}</h3>
+          <h3 className="text-lg font-bold">Edit: {editing.title ?? editing.page_key}</h3>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div><label className="mb-1 block text-sm font-medium">Title</label><input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full rounded-lg border px-4 py-2" /></div>
             <div><label className="mb-1 block text-sm font-medium">Content</label><textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} rows={16} className="w-full rounded-lg border px-4 py-2 font-mono text-sm" /></div>

@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
+// import { Session, User } from "@supabase/supabase-js";
 import { supabase } from '@/lib/supabase'
 import { TABLE } from '@/lib/tableNames'
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 
 export type Profile = {
   id: string;
@@ -101,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // 🔥 Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         if (!alive) return;
 
         setSession(session);

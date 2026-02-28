@@ -13,7 +13,7 @@ export function TestimonialsTab() {
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Testimonial | null>(null)
-  const [form, setForm] = useState({ client_name: '', client_role: '', content: '', rating: 5, image_url: '', is_active: true })
+  const [form, setForm] = useState({ client_name: '', review: '', rating: 5, client_image: '', is_active: true })
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', success: false })
 
@@ -35,19 +35,19 @@ export function TestimonialsTab() {
 
   function openAdd() {
     setEditing(null)
-    setForm({ client_name: '', client_role: '', content: '', rating: 5, image_url: '', is_active: true })
+    setForm({ client_name: '', review: '', rating: 5, client_image: '', is_active: true })
     setModalOpen(true)
   }
   function openEdit(t: Testimonial) {
     setEditing(t)
-    setForm({ client_name: t.client_name ?? '', client_role: t.client_role ?? '', content: t.content ?? '', rating: t.rating ?? 5, image_url: t.image_url ?? '', is_active: t.is_active ?? true })
+    setForm({ client_name: t.client_name ?? '', review: t.review ?? '', rating: t.rating ?? 5, client_image: t.client_image ?? '', is_active: t.is_active ?? true })
     setModalOpen(true)
   }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const payload = { client_name: form.client_name.trim(), client_role: form.client_role.trim() || null, content: form.content.trim(), rating: form.rating, image_url: form.image_url.trim() || null, is_active: form.is_active }
+      const payload: Partial<Testimonial> = { client_name: form.client_name.trim() || null, review: form.review.trim() || null, rating: form.rating, client_image: form.client_image.trim() || null, is_active: form.is_active }
       if (editing) {
         await updateTestimonial(editing.id, payload)
         showToast('Updated.', true)
@@ -101,7 +101,7 @@ export function TestimonialsTab() {
                 {items.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium">{t.client_name ?? '-'}</td>
-                    <td className="max-w-xs px-6 py-4 text-sm truncate">{t.content ?? '-'}</td>
+                    <td className="max-w-xs px-6 py-4 text-sm truncate">{t.review ?? '-'}</td>
                     <td className="px-6 py-4">{t.rating ?? '-'}</td>
                     <td className="px-6 py-4">{t.is_active ? 'Yes' : 'No'}</td>
                     <td className="px-6 py-4"><button type="button" onClick={() => openEdit(t)} className="text-primary hover:underline text-sm mr-2">Edit</button><button type="button" onClick={() => handleDelete(t)} className="text-red-600 hover:underline text-sm">Delete</button></td>
@@ -120,10 +120,9 @@ export function TestimonialsTab() {
             <h3 className="text-lg font-bold">{editing ? 'Edit' : 'Add'} Testimonial</h3>
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div><label className="mb-1 block text-sm font-medium">Client Name</label><input type="text" value={form.client_name} onChange={(e) => setForm((f) => ({ ...f, client_name: e.target.value }))} required className="w-full rounded-lg border px-4 py-2" /></div>
-              <div><label className="mb-1 block text-sm font-medium">Client Role</label><input type="text" value={form.client_role} onChange={(e) => setForm((f) => ({ ...f, client_role: e.target.value }))} className="w-full rounded-lg border px-4 py-2" /></div>
-              <div><label className="mb-1 block text-sm font-medium">Content</label><textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} rows={4} required className="w-full rounded-lg border px-4 py-2" /></div>
+              <div><label className="mb-1 block text-sm font-medium">Review / Content</label><textarea value={form.review} onChange={(e) => setForm((f) => ({ ...f, review: e.target.value }))} rows={4} required className="w-full rounded-lg border px-4 py-2" /></div>
               <div><label className="mb-1 block text-sm font-medium">Rating</label><input type="number" min={1} max={5} value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: Number(e.target.value) }))} className="w-full rounded-lg border px-4 py-2" /></div>
-              <div><label className="mb-1 block text-sm font-medium">Image URL</label><input type="url" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} className="w-full rounded-lg border px-4 py-2" /></div>
+              <div><label className="mb-1 block text-sm font-medium">Image URL</label><input type="url" value={form.client_image} onChange={(e) => setForm((f) => ({ ...f, client_image: e.target.value }))} className="w-full rounded-lg border px-4 py-2" /></div>
               <div className="flex items-center gap-2"><input type="checkbox" id="ta" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} /><label htmlFor="ta">Active</label></div>
               <div className="flex gap-2"><button type="button" onClick={() => setModalOpen(false)} className="flex-1 rounded-lg border px-4 py-2">Cancel</button><button type="submit" disabled={submitting} className="flex-1 rounded-lg bg-primary px-4 py-2 text-white disabled:opacity-50">Save</button></div>
             </form>

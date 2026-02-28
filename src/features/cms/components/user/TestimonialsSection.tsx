@@ -29,9 +29,8 @@ export default function TestimonialsSection() {
                   ))}
                 </div>
               )}
-              <p className="text-gray-700 mb-4">&ldquo;{t.content ?? ''}&rdquo;</p>
+              <p className="text-gray-700 mb-4">&ldquo;{t.review ?? ''}&rdquo;</p>
               <p className="font-semibold text-gray-900">{t.client_name ?? '—'}</p>
-              {t.client_role && <p className="text-sm text-gray-500">{t.client_role}</p>}
             </div>
           ))}
         </div>

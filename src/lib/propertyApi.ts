@@ -164,7 +164,7 @@ export async function fetchPropertiesByListingType(
   if (error) throw error
   if (!rows?.length) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: PropertyRow) => r.id)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -181,7 +181,7 @@ export async function fetchPropertiesByListingType(
     locMap[l.id] = l
   })
 
-  const result = rows.map((r) => ({
+  const result = rows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id] ?? null : null,
@@ -201,7 +201,7 @@ export async function fetchProjectsWithUnits(): Promise<ProjectWithUnits[]> {
   const rows = await fetchPropertiesByListingType('Project')
   if (rows.length === 0) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: PropertyRow) => r.id)
 
   const [unitsRes, paRes] = await Promise.all([
     supabase
@@ -266,9 +266,9 @@ export async function fetchPropertyById(id: number): Promise<PropertyWithDetails
       .from(TABLE.property_amenities)
       .select('amenity_id')
       .eq('property_id', id)
-      .then(async (r) => {
-        if (r.error || !r.data?.length) return { data: [] }
-        const ids = r.data.map((x: { amenity_id: number }) => x.amenity_id)
+      .then(async (res: { data: { amenity_id: number }[] | null; error: unknown }) => {
+        if (res.error || !res.data?.length) return { data: [] }
+        const ids = res.data.map((x: { amenity_id: number }) => x.amenity_id)
         const { data } = await supabase.from(TABLE.amenities).select('id, name').in('id', ids)
         return { data: data ?? [] }
       }),
@@ -306,7 +306,7 @@ export async function fetchSimilarProperties(
 
   if (error || !rows?.length) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: Pick<PropertyRow, 'id'>) => r.id)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -323,7 +323,7 @@ export async function fetchSimilarProperties(
     locMap[l.id] = l
   })
 
-  return rows.map((r) => ({
+  return rows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id] ?? null : null,
@@ -383,7 +383,7 @@ export async function fetchProjectPriceRange(): Promise<PriceRange> {
     .in('property_id', propertyIds)
     .not('price', 'is', null)
 
-  const prices = (agg ?? []).map((r: { price: number }) => r.price).filter((p): p is number => p != null)
+  const prices = (agg ?? []).map((r: { price: number }) => r.price).filter((p: number | null): p is number => p != null)
   if (prices.length === 0) return { min: 0, max: 0 }
   return { min: Math.min(...prices), max: Math.max(...prices) }
 }
@@ -420,7 +420,7 @@ export async function fetchFilteredProjects(filters: ProjectFilters): Promise<Pr
   if (propError) throw propError
   if (!propRows?.length) return []
 
-  const ids = propRows.map((r) => r.id)
+  const ids = propRows.map((r: PropertyRow) => r.id)
   const [mediaRes, locRes, paRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -461,7 +461,7 @@ export async function fetchFilteredProjects(filters: ProjectFilters): Promise<Pr
     }
   })
 
-  return propRows.map((r) => ({
+  return propRows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id] ?? null : null,
@@ -497,7 +497,8 @@ async function getProjectPropertyIdsForUnitsFilter(
   }
 
   const { data: unitRows } = await unitsQuery
-  const distinctIds = [...new Set((unitRows ?? []).map((u: { property_id: number }) => u.property_id))]
+  const arr = (unitRows ?? []) as { property_id: number }[]
+  const distinctIds: number[] = [...new Set(arr.map((u) => u.property_id))]
   return distinctIds
 }
 
@@ -529,7 +530,7 @@ export async function fetchFilteredRent(filters: RentResaleFilters): Promise<Pro
   if (error) throw error
   if (!rows?.length) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: PropertyRow) => r.id)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -546,7 +547,7 @@ export async function fetchFilteredRent(filters: RentResaleFilters): Promise<Pro
     locMap[l.id] = l
   })
 
-  return rows.map((r) => ({
+  return rows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id] ?? null : null,
@@ -581,7 +582,7 @@ export async function fetchFilteredResale(filters: RentResaleFilters): Promise<P
   if (error) throw error
   if (!rows?.length) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: PropertyRow) => r.id)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -598,7 +599,7 @@ export async function fetchFilteredResale(filters: RentResaleFilters): Promise<P
     locMap[l.id] = l
   })
 
-  return rows.map((r) => ({
+  return rows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id] ?? null : null,
@@ -629,7 +630,7 @@ export async function fetchRentPriceRange(): Promise<PriceRange> {
     .select('price')
     .in('property_Type_id', typeIds)
     .not('price', 'is', null)
-  const prices = (data ?? []).map((r: { price: number }) => r.price).filter((p): p is number => p != null)
+  const prices = (data ?? []).map((r: { price: number }) => r.price).filter((p: number | null): p is number => p != null)
   if (prices.length === 0) return { min: 0, max: 0 }
   return { min: Math.min(...prices), max: Math.max(...prices) }
 }
@@ -645,7 +646,7 @@ export async function fetchResalePriceRange(): Promise<PriceRange> {
     .select('price')
     .in('property_Type_id', typeIds)
     .not('price', 'is', null)
-  const prices = (data ?? []).map((r: { price: number }) => r.price).filter((p): p is number => p != null)
+  const prices = (data ?? []).map((r: { price: number }) => r.price).filter((p: number | null): p is number => p != null)
   if (prices.length === 0) return { min: 0, max: 0 }
   return { min: Math.min(...prices), max: Math.max(...prices) }
 }
@@ -709,12 +710,12 @@ export async function searchProperties(
     merged.push(r as (typeof titleRows)[number])
   }
 
-  merged.sort((a, b) => (b.id as number) - (a.id as number))
+  merged.sort((a: { id: unknown }, b: { id: unknown }) => (b.id as number) - (a.id as number))
   const limited = limit ? merged.slice(0, limit) : merged
 
   if (limited.length === 0) return []
 
-  const ids = limited.map((r) => r.id as number)
+  const ids = limited.map((r: { id: unknown }) => r.id as number)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),
@@ -731,7 +732,7 @@ export async function searchProperties(
     locMap[l.id] = l
   })
 
-  return limited.map((r) => ({
+  return limited.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id as number] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id as number] ?? null : null,
@@ -762,7 +763,7 @@ export async function searchPropertiesByCity(
 
   if (propError || !propRows?.length) return []
 
-  const ids = propRows.map((r) => r.id as number)
+  const ids = propRows.map((r: PropertyRow) => r.id as number)
   const [mediaRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
   ])
@@ -778,7 +779,7 @@ export async function searchPropertiesByCity(
     locMap[l.id] = l
   })
 
-  return propRows.map((r) => ({
+  return propRows.map((r: PropertyRow) => ({
     ...r,
     media: mediaByProperty[r.id as number] ?? [],
     location: r.property_location_id ? locMap[r.property_location_id as number] ?? null : null,

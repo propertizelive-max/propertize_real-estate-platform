@@ -446,7 +446,7 @@ function TeamTab() {
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<TeamMember | null>(null)
-  const [form, setForm] = useState({ name: '', role: '', bio: '', phone: '', email: '', image_url: '', experience: '' })
+  const [form, setForm] = useState({ name: '', role: '', bio: '', phone: '', email: '', image_url: '', experience_years: '' })
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', success: false })
   const showToast = (m: string, s: boolean) => { setToast({ show: true, message: m, success: s }); setTimeout(() => setToast((t) => ({ ...t, show: false })), 3000) }
@@ -467,19 +467,19 @@ function TeamTab() {
   }, [])
   function openAdd() {
     setEditing(null)
-    setForm({ name: '', role: '', bio: '', phone: '', email: '', image_url: '', experience: '' })
+    setForm({ name: '', role: '', bio: '', phone: '', email: '', image_url: '', experience_years: '' })
     setModalOpen(true)
   }
   function openEdit(t: TeamMember) {
     setEditing(t)
-    setForm({ name: t.name ?? '', role: t.role ?? '', bio: t.bio ?? '', phone: t.phone ?? '', email: t.email ?? '', image_url: t.image_url ?? '', experience: t.experience ?? '' })
+    setForm({ name: t.name ?? '', role: t.role ?? '', bio: t.bio ?? '', phone: t.phone ?? '', email: t.email ?? '', image_url: t.image_url ?? '', experience_years: t.experience_years != null ? String(t.experience_years) : '' })
     setModalOpen(true)
   }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const payload = { name: form.name.trim(), role: form.role.trim() || null, bio: form.bio.trim() || null, phone: form.phone.trim() || null, email: form.email.trim() || null, image_url: form.image_url.trim() || null, experience: form.experience.trim() || null }
+      const payload = { name: form.name.trim(), role: form.role.trim() || null, bio: form.bio.trim() || null, phone: form.phone.trim() || null, email: form.email.trim() || null, image_url: form.image_url.trim() || null, experience_years: form.experience_years.trim() ? parseInt(form.experience_years, 10) : null }
       if (editing) {
         await updateTeamMember(editing.id, payload)
         showToast('Updated.', true)
@@ -524,7 +524,7 @@ function TeamTab() {
               <div className="p-6">
                 <h3 className="font-bold">{t.name ?? '-'}</h3>
                 <p className="text-sm text-primary">{t.role ?? '-'}</p>
-                {t.experience && <p className="mt-1 text-xs text-gray-500">{t.experience}</p>}
+                {t.experience_years != null && <p className="mt-1 text-xs text-gray-500">{t.experience_years} years</p>}
                 <div className="mt-4 flex gap-2">
                   <button type="button" onClick={() => openEdit(t)} className="text-primary hover:underline text-sm">Edit</button>
                   <button type="button" onClick={() => handleDelete(t)} className="text-red-600 hover:underline text-sm">Delete</button>
@@ -540,7 +540,7 @@ function TeamTab() {
           <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-bold">{editing ? 'Edit' : 'Add'} Team Member</h3>
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              {(['name', 'role', 'bio', 'phone', 'email', 'image_url', 'experience'] as const).map((field) => (
+              {(['name', 'role', 'bio', 'phone', 'email', 'image_url', 'experience_years'] as const).map((field) => (
                 <div key={field}><label className="mb-1 block text-sm font-medium capitalize">{field.replace('_', ' ')}</label>{field === 'bio' ? <textarea value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} rows={3} className="w-full rounded-lg border px-4 py-2" /> : <input type={field === 'email' ? 'email' : 'text'} value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} className="w-full rounded-lg border px-4 py-2" />}</div>
               ))}
               <div className="flex gap-2"><button type="button" onClick={() => setModalOpen(false)} className="flex-1 rounded-lg border px-4 py-2">Cancel</button><button type="submit" disabled={submitting} className="flex-1 rounded-lg bg-primary px-4 py-2 text-white disabled:opacity-50">Save</button></div>
@@ -592,7 +592,7 @@ function CompanyStatsTab() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const payload = { label: form.label.trim(), value: form.value.trim(), icon: form.icon.trim() || null }
+      const payload: Partial<CompanyStat> = { label: form.label.trim() || null, value: form.value.trim() || null, icon: form.icon.trim() || null }
       if (editing) {
         await updateCompanyStat(editing.id, payload)
         showToast('Updated.', true)

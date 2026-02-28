@@ -75,7 +75,7 @@ export async function fetchSimilarPropertiesServer(
 
   if (error || !rows?.length) return []
 
-  const ids = rows.map((r) => r.id)
+  const ids = rows.map((r: { id: string }) => r.id)
   const [mediaRes, locRes] = await Promise.all([
     supabase.from(TABLE.property_media).select('id, property_id, file_url').in('property_id', ids).order('id'),
     supabase.from(TABLE.property_location).select('id, streetaddress, city, state, zip_code'),

@@ -48,39 +48,26 @@ export async function updateSiteSection(id: string | number, row: Partial<SiteSe
   return data as SiteSection
 }
 
-// --- Services --- (schema: is_active, no status/sort_order; use display_order if exists)
-export async function fetchServices() {
+// --- Services --- (schema: is_active)
+export async function fetchServices(): Promise<Service[]> {
   const { data, error } = await supabase
     .from(TABLE.services)
     .select('*')
     .order('created_at', { ascending: true })
   if (error) throw error
-  return ((data ?? []) as Service[]).map((s) => ({
-    ...s,
-    status: s.is_active === true ? 'active' : s.is_active === false ? 'inactive' : (s.status ?? 'active'),
-  }))
+  return (data ?? []) as Service[]
 }
 
-export async function createService(row: Partial<Service>) {
-  const payload: Record<string, unknown> = { ...row }
-  if ('status' in row) {
-    payload.is_active = (row.status ?? 'active').toString().toLowerCase() === 'active'
-    delete payload.status
-  }
-  const { data, error } = await supabase.from(TABLE.services).insert(payload).select().single()
+export async function createService(row: Partial<Service>): Promise<Service> {
+  const { data, error } = await supabase.from(TABLE.services).insert(row).select().single()
   if (error) throw error
-  return { ...(data as Service), status: (data as { is_active?: boolean }).is_active ? 'active' : 'inactive' }
+  return data as Service
 }
 
-export async function updateService(id: string | number, row: Partial<Service>) {
-  const payload: Record<string, unknown> = { ...row }
-  if ('status' in row) {
-    payload.is_active = (row.status ?? 'active').toString().toLowerCase() === 'active'
-    delete payload.status
-  }
+export async function updateService(id: string | number, row: Partial<Service>): Promise<Service> {
   const { data, error } = await supabase
     .from(TABLE.services)
-    .update(payload)
+    .update(row)
     .eq('id', id)
     .select()
     .single()
@@ -93,47 +80,30 @@ export async function deleteService(id: string | number) {
   if (error) throw error
 }
 
-// --- Team Members --- (schema: experience_years not experience, no sort_order)
-export async function fetchTeamMembers() {
+// --- Team Members --- (schema: experience_years, is_active)
+export async function fetchTeamMembers(): Promise<TeamMember[]> {
   const { data, error } = await supabase
     .from(TABLE.team_members)
     .select('*')
     .order('created_at', { ascending: true })
   if (error) throw error
-  return ((data ?? []) as TeamMember[]).map((t) => ({
-    ...t,
-    experience: t.experience ?? (t.experience_years != null ? `${t.experience_years} years` : null),
-  }))
+  return (data ?? []) as TeamMember[]
 }
 
-export async function createTeamMember(row: Partial<TeamMember>) {
-  const payload = { ...row } as Record<string, unknown>
-  if ('experience' in row && row.experience) {
-    const match = String(row.experience).match(/(\d+)/)
-    if (match) payload.experience_years = parseFloat(match[1])
-    delete payload.experience
-  }
+export async function createTeamMember(row: Partial<TeamMember>): Promise<TeamMember> {
   const { data, error } = await supabase
     .from(TABLE.team_members)
-    .insert(payload)
+    .insert(row)
     .select()
     .single()
   if (error) throw error
   return data as TeamMember
 }
 
-export async function updateTeamMember(id: string | number, row: Partial<TeamMember>) {
-  const payload = { ...row } as Record<string, unknown>
-  if ('experience' in row) {
-    if (row.experience) {
-      const match = String(row.experience).match(/(\d+)/)
-      if (match) payload.experience_years = parseFloat(match[1])
-    } else payload.experience_years = null
-    delete payload.experience
-  }
+export async function updateTeamMember(id: string | number, row: Partial<TeamMember>): Promise<TeamMember> {
   const { data, error } = await supabase
     .from(TABLE.team_members)
-    .update(payload)
+    .update(row)
     .eq('id', id)
     .select()
     .single()
@@ -146,28 +116,27 @@ export async function deleteTeamMember(id: string | number) {
   if (error) throw error
 }
 
-// --- Testimonials --- (schema: client_image not image_url, review not content)
-export async function fetchTestimonials(activeOnly = false) {
+// --- Testimonials --- (DB: client_name, client_image, review)
+export async function fetchTestimonials(activeOnly = false): Promise<Testimonial[]> {
   let q = supabase.from(TABLE.testimonials).select('*').order('created_at', { ascending: false })
   if (activeOnly) q = q.eq('is_active', true)
   const { data, error } = await q
   if (error) throw error
   return ((data ?? []) as Testimonial[]).map((t) => ({
-    ...t,
-    image_url: t.image_url ?? (t as { client_image?: string }).client_image,
-    content: t.content ?? (t as { review?: string }).review,
+    id: t.id,
+    client_name: t.client_name ?? null,
+    client_image: t.client_image ?? null,
+    review: t.review ?? null,
+    rating: t.rating ?? null,
+    is_active: t.is_active ?? false,
+    created_at: (t as { created_at?: string }).created_at ?? '',
   }))
 }
 
 export async function createTestimonial(row: Partial<Testimonial>) {
-  const payload: Record<string, unknown> = { ...row }
-  if ('image_url' in row) payload.client_image = row.image_url
-  if ('content' in row) payload.review = row.content
-  delete payload.image_url
-  delete payload.content
   const { data, error } = await supabase
     .from(TABLE.testimonials)
-    .insert(payload)
+    .insert(row)
     .select()
     .single()
   if (error) throw error
@@ -175,14 +144,9 @@ export async function createTestimonial(row: Partial<Testimonial>) {
 }
 
 export async function updateTestimonial(id: string | number, row: Partial<Testimonial>) {
-  const payload: Record<string, unknown> = { ...row }
-  if ('image_url' in row) payload.client_image = row.image_url
-  if ('content' in row) payload.review = row.content
-  delete payload.image_url
-  delete payload.content
   const { data, error } = await supabase
     .from(TABLE.testimonials)
-    .update(payload)
+    .update(row)
     .eq('id', id)
     .select()
     .single()
@@ -283,14 +247,11 @@ export async function deleteCompanyStat(id: string | number) {
   if (error) throw error
 }
 
-// --- Legal Pages --- (schema: page_key not slug)
-export async function fetchLegalPages() {
+// --- Legal Pages --- (schema: page_key)
+export async function fetchLegalPages(): Promise<LegalPage[]> {
   const { data, error } = await supabase.from(TABLE.legal_pages).select('*').order('page_key')
   if (error) throw error
-  return ((data ?? []) as LegalPage[]).map((p) => ({
-    ...p,
-    slug: p.slug ?? p.page_key ?? '',
-  }))
+  return (data ?? []) as LegalPage[]
 }
 
 export async function upsertLegalPage(row: Partial<LegalPage> & { slug?: string; page_key?: string }) {

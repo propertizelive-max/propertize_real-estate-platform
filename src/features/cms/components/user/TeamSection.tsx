@@ -31,7 +31,7 @@ export default function TeamSection() {
               </div>
               <h3 className="font-bold text-gray-900">{t.name ?? '-'}</h3>
               <p className="text-sm text-primary">{t.role ?? ''}</p>
-              {t.experience && <p className="text-xs text-gray-500 mt-1">{t.experience}</p>}
+              {t.experience_years != null && <p className="text-xs text-gray-500 mt-1">{t.experience_years} years</p>}
             </div>
           ))}
         </div>

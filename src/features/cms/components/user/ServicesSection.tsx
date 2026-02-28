@@ -13,7 +13,7 @@ export default function ServicesSection() {
       .catch(() => setItems([]))
   }, [])
 
-  const activeServices = items.filter((s) => (s.status ?? 'active').toLowerCase() === 'active')
+  const activeServices = items.filter((s) => s.is_active)
   if (activeServices.length === 0) return null
 
   return (
