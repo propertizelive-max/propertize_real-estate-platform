@@ -22,11 +22,11 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# ARG NEXT_PUBLIC_SUPABASE_URL
-# ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-# ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-# ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 RUN npm run build
 
@@ -39,8 +39,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Runtime port; override with -e PORT=8080 when running container
-# ENV PORT=3000
+# Render assigns PORT dynamically (e.g. 10000). Use it or fallback to 3000.
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
 EXPOSE 3000
 
 # Create non-root user
@@ -54,6 +56,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-# PORT env is used by Next.js standalone server (default 3000)
-# CMD ["node", "server.js"]
-CMD ["node", "server.js", "--hostname", "0.0.0.0"]
+# Next.js standalone: HOSTNAME=0.0.0.0 and PORT from env (Render sets PORT)
+CMD ["node", "server.js"]
